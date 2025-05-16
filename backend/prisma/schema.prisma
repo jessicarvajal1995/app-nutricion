@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Puedes cambiarlo a sqlite para desarrollo
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String            @id @default(uuid())
+  name          String
+  age           Int
+  height        Float             // en cm
+  currentWeight Float             // en kg
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  goals         NutritionalGoal[]
+  dailyRecords  DailyRecord[]
+}
+
+model NutritionalGoal {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  targetWeight Float    // en kg
+  proteinGoal  Float    // en g
+  carbsGoal    Float    // en g
+  fatGoal      Float    // en g
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DailyRecord {
+  id         String      @id @default(uuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  date       DateTime    @default(now())
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  dailyDishes DailyDish[]
+}
+
+model Dish {
+  id            String      @id @default(uuid())
+  name          String
+  proteinPer100g Float
+  carbsPer100g   Float
+  fatsPer100g    Float
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  dailyDishes   DailyDish[]
+}
+
+model DailyDish {
+  id            String      @id @default(uuid())
+  dailyRecordId String
+  dailyRecord   DailyRecord @relation(fields: [dailyRecordId], references: [id])
+  dishId        String
+  dish          Dish        @relation(fields: [dishId], references: [id])
+  grams         Float
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
