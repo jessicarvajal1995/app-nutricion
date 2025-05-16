@@ -1,16 +1,6 @@
 import { defineStore } from 'pinia';
+import type { User } from '../../domain/entities/User';
 import { UserService } from '../services/UserService';
-
-
-interface User {
- id: string;
- name: string;
- age: number;
- height: number;
- currentWeight: number;
- createdAt: string;
- updatedAt: string;
-}
 
 
 interface UserState {
@@ -47,6 +37,24 @@ export const useUserStore = defineStore('user', {
      }
    },
   
+   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) {
+     this.loading = true;
+     this.error = null;
+    
+     try {
+       const userService = new UserService();
+       const user = await userService.createUser(userData);
+       this.currentUser = user;
+       return user;
+     } catch (error) {
+       this.error = error instanceof Error ? error.message : 'Error desconocido';
+       console.error('Error al crear el usuario:', error);
+       throw error;
+     } finally {
+       this.loading = false;
+     }
+   },
+  
    async updateUser(userData: Partial<User>) {
      if (!this.currentUser) return;
     
@@ -57,9 +65,11 @@ export const useUserStore = defineStore('user', {
        const userService = new UserService();
        const updatedUser = await userService.updateUser(this.currentUser.id, userData);
        this.currentUser = updatedUser;
+       return updatedUser;
      } catch (error) {
        this.error = error instanceof Error ? error.message : 'Error desconocido';
        console.error('Error al actualizar el usuario:', error);
+       throw error;
      } finally {
        this.loading = false;
      }

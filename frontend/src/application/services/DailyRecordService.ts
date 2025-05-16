@@ -1,6 +1,6 @@
 import { ApiClient } from '../../infrastructure/api/ApiClient';
-import { DailyRecord } from '../../domain/entities/DailyRecord';
-import { DailyDish } from '../../domain/entities/DailyDish';
+import type { DailyRecord } from '../../domain/entities/DailyRecord.ts';
+import type { DailyDish } from '../../domain/entities/DailyDish.ts';
 
 
 export class DailyRecordService {

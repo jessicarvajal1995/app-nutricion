@@ -1,0 +1,24 @@
+import { ApiClient } from '../../infrastructure/api/ApiClient';
+import type { Dish } from '../../domain/entities/Dish.ts';
+
+export class DishService {
+ private apiClient: ApiClient;
+  constructor() {
+   this.apiClient = new ApiClient();
+ }
+  async getDish(id: string): Promise<Dish> {
+   return this.apiClient.get<Dish>(`/dishes/${id}`);
+ }
+  async getAllDishes(): Promise<Dish[]> {
+   return this.apiClient.get<Dish[]>('/dishes');
+ }
+  async createDish(dishData: Omit<Dish, 'id' | 'createdAt' | 'updatedAt'>): Promise<Dish> {
+   return this.apiClient.post<Dish>('/dishes', dishData);
+ }
+  async updateDish(id: string, dishData: Partial<Dish>): Promise<Dish> {
+   return this.apiClient.put<Dish>(`/dishes/${id}`, dishData);
+ }
+  async deleteDish(id: string): Promise<void> {
+   return this.apiClient.delete<void>(`/dishes/${id}`);
+ }
+} 
