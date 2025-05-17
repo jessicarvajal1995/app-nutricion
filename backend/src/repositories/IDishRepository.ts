@@ -1,4 +1,4 @@
-import { Dish } from '../entities/Dish';
+import { Dish } from '../entities/Dish.js';
 
 
 export interface IDishRepository {

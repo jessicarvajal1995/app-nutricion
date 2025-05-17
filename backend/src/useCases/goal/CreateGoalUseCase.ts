@@ -1,5 +1,5 @@
-import { NutritionalGoal } from '../../entities/NutritionalGoal';
-import { IGoalRepository } from '../../repositories/IGoalRepository';
+import { NutritionalGoal } from '../../entities/NutritionalGoal.js';
+import { IGoalRepository } from '../../repositories/IGoalRepository.js';
 
 
 interface CreateGoalDTO {

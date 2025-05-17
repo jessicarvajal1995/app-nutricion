@@ -1,5 +1,5 @@
-import { DailyRecord } from '../entities/DailyRecord';
-import { DailyDish } from '../entities/DailyDish';
+import { DailyRecord } from '../entities/DailyRecord.js';
+import { DailyDish } from '../entities/DailyDish.js';
 
 
 export interface IDailyRecordRepository {

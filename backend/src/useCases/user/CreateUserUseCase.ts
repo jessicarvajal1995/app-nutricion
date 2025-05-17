@@ -1,5 +1,5 @@
-import { User } from '../../entities/User';
-import { IUserRepository } from '../../repositories/IUserRepository';
+import { User } from '../../entities/User.js';
+import { IUserRepository } from '../../repositories/IUserRepository.js';
 
 
 interface CreateUserDTO {

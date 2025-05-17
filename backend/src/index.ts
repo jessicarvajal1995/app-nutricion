@@ -1,41 +1,36 @@
-import { NutritionalGoal } from './entities/NutritionalGoal';
-import { IGoalRepository } from './repositories/IGoalRepository';
+import express, { Request, Response } from 'express';
+// import { PrismaClient } from '@prisma/client'; // No longer needed here, managed in userRoutes
+import userRoutes from './routes/userRoutes.js'; // Import user routes
+import cors from 'cors'; // Import cors
+// NutritionalGoal and IGoalRepository might be used for other routes later
+// import { NutritionalGoal } from './entities/NutritionalGoal.js';
+// import { IGoalRepository } from './repositories/IGoalRepository.js';
 
+// CreateGoalUseCase and its DTO might be used for other routes later
+// interface CreateGoalDTO { ... }
+// export class CreateGoalUseCase { ... }
 
-interface CreateGoalDTO {
- userId: string;
- targetWeight: number;
- proteinGoal: number;
- carbsGoal: number;
- fatGoal: number;
- isActive: boolean;
-}
+const app = express();
+const PORT = process.env.PORT || 3000;
+// const prisma = new PrismaClient(); // No longer needed here, managed in userRoutes
 
+// Middleware CORS
+// Esto permitirá todas las peticiones de cualquier origen. 
+// Para producción, deberías configurarlo de forma más restrictiva.
+app.use(cors()); 
 
-export class CreateGoalUseCase {
- constructor(private goalRepository: IGoalRepository) {}
+app.use(express.json()); // Middleware to parse JSON bodies
 
+// Base route
+app.get('/', (req: Request, res: Response) => {
+  res.send('¡Backend funcionando!');
+});
 
- async execute(data: CreateGoalDTO): Promise<NutritionalGoal> {
-   // Validaciones de negocio
-   if (data.targetWeight <= 0) {
-     throw new Error('El peso objetivo debe ser mayor que cero');
-   }
-  
-   if (data.proteinGoal < 0 || data.carbsGoal < 0 || data.fatGoal < 0) {
-     throw new Error('Los objetivos nutricionales no pueden ser negativos');
-   }
+// Use user routes, prefixing them with /api/users
+app.use('/api/users', userRoutes);
 
+// TODO: Add routes for Goals and other entities here
 
-   // Si la nueva meta está activa, desactivamos las demás
-   if (data.isActive) {
-     const activeGoal = await this.goalRepository.findActiveByUserId(data.userId);
-     if (activeGoal) {
-       await this.goalRepository.update(activeGoal.id, { isActive: false });
-     }
-   }
-
-
-   return this.goalRepository.create(data);
- }
-}
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

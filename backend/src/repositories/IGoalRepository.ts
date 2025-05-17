@@ -1,4 +1,4 @@
-import { NutritionalGoal } from '../entities/NutritionalGoal';
+import { NutritionalGoal } from '../entities/NutritionalGoal.js';
 
 
 export interface IGoalRepository {

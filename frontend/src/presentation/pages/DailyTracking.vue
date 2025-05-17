@@ -306,12 +306,6 @@
    
    
    const nextDay = () => {
-    if (isToday.  - 1);
-    selectedDate.value = date.toISOString().split('T')[0];
-   };
-   
-   
-   const nextDay = () => {
     if (isToday.value) return;
      const date = new Date(selectedDate.value);
     date.setDate(date.getDate() + 1);

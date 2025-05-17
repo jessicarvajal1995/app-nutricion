@@ -1,35 +1,26 @@
 import { ApiClient } from '../../infrastructure/api/ApiClient';
+import type { User, UserCreationData, UserUpdateData } from '../store/user';
 
-
-interface User {
- id: string;
- name: string;
- age: number;
- height: number;
- currentWeight: number;
- createdAt: string;
- updatedAt: string;
-}
-
+const apiClient = new ApiClient();
 
 export class UserService {
- private apiClient: ApiClient;
-  constructor() {
-   this.apiClient = new ApiClient();
- }
   async getUser(id: string): Promise<User> {
-   return this.apiClient.get<User>(`/users/${id}`);
- }
-  async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-   return this.apiClient.post<User>('/users', userData);
- }
-  async updateUser(id: string, userData: Partial<User>): Promise<User> {
-   return this.apiClient.put<User>(`/users/${id}`, userData);
- }
+    return apiClient.get<User>(`/users/${id}`);
+  }
+
+  async createUser(userData: UserCreationData): Promise<User> {
+    return apiClient.post<User>('/users', userData);
+  }
+
+  async updateUser(id: string, userData: UserUpdateData): Promise<User> {
+    return apiClient.put<User>(`/users/${id}`, userData);
+  }
+
   async deleteUser(id: string): Promise<void> {
-   return this.apiClient.delete<void>(`/users/${id}`);
- }
+    return apiClient.delete<void>(`/users/${id}`);
+  }
+
   async getAllUsers(): Promise<User[]> {
-   return this.apiClient.get<User[]>('/users');
- }
+    return apiClient.get<User[]>('/users');
+  }
 }

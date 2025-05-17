@@ -1,16 +1,16 @@
 <template>
     <div class="user-profile">
-      <h2>Perfil de Usuario</h2>
+      <h2>Crear Perfil de Usuario</h2>
      
       <div v-if="loading" class="loading">
-        Cargando...
+        Creando perfil...
       </div>
      
-      <div v-else-if="error" class="error">
-        {{ error }}
+      <div v-if="error" class="error">
+        Error al crear perfil: {{ error }}
       </div>
      
-      <form v-else @submit.prevent="saveProfile" class="profile-form">
+      <form @submit.prevent="createProfile" class="profile-form">
         <div class="form-group">
           <label for="name">Nombre</label>
           <input
@@ -57,149 +57,143 @@
         </div>
        
         <div class="form-actions">
-          <button type="submit" class="btn-primary">Guardar</button>
-          <button type="button" @click="resetForm" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Crear Perfil</button>
+          <button type="button" @click="resetForm" class="btn-secondary">Limpiar</button>
         </div>
       </form>
+
+      <div v-if="createdUser" class="created-user-details">
+        <h3>Perfil Creado Exitosamente:</h3>
+        <p><strong>ID:</strong> {{ createdUser.id }}</p>
+        <p><strong>Nombre:</strong> {{ createdUser.name }}</p>
+        <p><strong>Edad:</strong> {{ createdUser.age }}</p>
+        <p><strong>Altura:</strong> {{ createdUser.height }} cm</p>
+        <p><strong>Peso:</strong> {{ createdUser.currentWeight }} kg</p>
+        <p><strong>Creado en:</strong> {{ new Date(createdUser.createdAt).toLocaleString() }}</p>
+        <p><strong>Actualizado en:</strong> {{ new Date(createdUser.updatedAt).toLocaleString() }}</p>
+      </div>
     </div>
-   </template>
+</template>
    
    
-   <script setup lang="ts">
-   import { ref, reactive, onMounted, computed } from 'vue';
-   import { useUserStore } from '../../../application/store/user';
+<script setup lang="ts">
+import { ref, reactive, computed } from 'vue';
+import { useUserStore, type User } from '../../../application/store/user';
    
+const userStore = useUserStore();
+const loading = computed(() => userStore.loading);
+const error = computed(() => userStore.error);
+
+const createdUser = ref<User | null>(null);
    
-   const userStore = useUserStore();
-   const loading = computed(() => userStore.loading);
-   const error = computed(() => userStore.error);
-   const user = computed(() => userStore.currentUser);
+const form = reactive({
+  name: '',
+  age: 0,
+  height: 0,
+  currentWeight: 0
+});
    
+const resetForm = () => {
+  form.name = '';
+  form.age = 0;
+  form.height = 0;
+  form.currentWeight = 0;
+  createdUser.value = null;
+  userStore.clearError();
+};
    
-   const form = reactive({
-    name: '',
-    age: 0,
-    height: 0,
-    currentWeight: 0
-   });
-   
-   
-   // Inicializar el formulario con los datos del usuario
-   const initForm = () => {
-    if (user.value) {
-      form.name = user.value.name;
-      form.age = user.value.age;
-      form.height = user.value.height;
-      form.currentWeight = user.value.currentWeight;
+const createProfile = async () => {
+  createdUser.value = null;
+  try {
+    const newProfileData = {
+      name: form.name,
+      age: form.age,
+      height: form.height,
+      currentWeight: form.currentWeight
+    };
+    const newlyCreatedUser = await userStore.createUser(newProfileData);
+    
+    if (newlyCreatedUser) {
+      createdUser.value = newlyCreatedUser;
+      alert('Perfil creado correctamente');
     }
-   };
+  } catch (err: any) {
+    console.error('Error al crear el perfil (desde componente):', err);
+  }
+};
+</script>
    
+<style scoped>
+.user-profile {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
    
-   // Restablecer el formulario a los valores originales
-   const resetForm = () => {
-    initForm();
-   };
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
    
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
    
-   // Guardar los cambios del perfil
-   const saveProfile = async () => {
-    try {
-      await userStore.updateUser({
-        name: form.name,
-        age: form.age,
-        height: form.height,
-        currentWeight: form.currentWeight
-      });
-     
-      alert('Perfil actualizado correctamente');
-    } catch (err) {
-      console.error('Error al guardar el perfil:', err);
-    }
-   };
+label {
+  font-weight: bold;
+}
    
+input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
    
-   // Cargar los datos del usuario al montar el componente
-   onMounted(async () => {
-    // En una aplicación real, obtendrías el ID del usuario de alguna manera
-    // Por ejemplo, desde un token JWT o del almacenamiento local
-    const userId = 'user-id-here'; // Esto es un placeholder
-     if (!user.value) {
-      await userStore.fetchUser(userId);
-    }
-     initForm();
-   });
-   </script>
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
    
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
    
-   <style scoped>
-   .user-profile {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-   }
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+}
    
+.btn-secondary {
+  background-color: #f1f1f1;
+  color: #333;
+}
    
-   .profile-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-   }
+.loading, .error {
+  padding: 20px;
+  text-align: center;
+}
    
-   
-   .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-   }
-   
-   
-   label {
-    font-weight: bold;
-   }
-   
-   
-   input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-   }
-   
-   
-   .form-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-   }
-   
-   
-   button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-   }
-   
-   
-   .btn-primary {
-    background-color: #4CAF50;
-    color: white;
-   }
-   
-   
-   .btn-secondary {
-    background-color: #f1f1f1;
-    color: #333;
-   }
-   
-   
-   .loading, .error {
-    padding: 20px;
-    text-align: center;
-   }
-   
-   
-   .error {
-    color: red;
-   }
-   </style>
+.error {
+  color: red;
+}
+
+.created-user-details {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
+
+.created-user-details h3 {
+  margin-top: 0;
+}
+</style>
    

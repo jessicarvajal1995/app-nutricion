@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
-import { User } from '../../entities/User';
-import { IUserRepository } from '../../repositories/IUserRepository';
+import { PrismaClient, User as PrismaUser, Prisma } from '@prisma/client';
+import { User } from '../../entities/User.js';
+import { IUserRepository } from '../../repositories/IUserRepository.js';
 
 
 export class PrismaUserRepository implements IUserRepository {
@@ -27,7 +27,7 @@ export class PrismaUserRepository implements IUserRepository {
  async findAll(): Promise<User[]> {
    const users = await this.prisma.user.findMany();
   
-   return users.map(user => new User(
+   return users.map((user: PrismaUser) => new User(
      user.id,
      user.name,
      user.age,
