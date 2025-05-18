@@ -1,33 +1,18 @@
 import { defineStore } from 'pinia';
-import type { User } from '../../domain/entities/User';
+import type { User as DomainUser } from '../../domain/entities/User';
 import { UserService } from '../services/UserService';
-import { ApiClient } from '../../infrastructure/api/ApiClient';
-
-// Instancia de ApiClient. Si ApiClient.ts exporta una clase:
-const apiClient = new ApiClient();
-// Si ApiClient.ts exporta una instancia ya creada (ej. export default new ApiClient()):
-// import apiClient from '../../infrastructure/api/ApiClient';
-
-// Definición de la interfaz User (si no está definida en otro lugar e importada)
-export interface User {
-  id: string;
-  name: string;
-  age: number;
-  height: number;
-  currentWeight: number;
-  createdAt: string; // O Date, dependiendo de la serialización de tu API
-  updatedAt: string; // O Date
-  // otros campos que pueda tener tu entidad User del backend
-}
 
 // Tipo para los datos que se envían al crear un usuario (sin id, createdAt, updatedAt)
-export type UserCreationData = Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+export type UserCreationData = Omit<DomainUser, 'id' | 'createdAt' | 'updatedAt'>;
 // Tipo para los datos que se envían al actualizar (id es opcional en el payload pero requerido en la URL)
-export type UserUpdateData = Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt'>>;
+// For the store action, we expect an object with id and the update data.
+export type UserUpdatePayload = { id: string } & Partial<Omit<DomainUser, 'id' | 'createdAt' | 'updatedAt'>>;
+// For the service, it will be just the data part.
+export type UserUpdateData = Partial<Omit<DomainUser, 'id' | 'createdAt' | 'updatedAt'>>;
 
 interface UserState {
-  currentUser: User | null;
-  users: User[]; // Array para almacenar la lista de usuarios
+  currentUser: DomainUser | null;
+  users: DomainUser[]; // Array para almacenar la lista de usuarios
   loading: boolean;
   error: string | null;
 }
@@ -56,7 +41,7 @@ export const useUserStore = defineStore('user', {
       this.currentUser = null;
     },
 
-    async createUser(userData: UserCreationData): Promise<User | null> {
+    async createUser(userData: UserCreationData): Promise<DomainUser | null> {
       this.loading = true;
       this.error = null;
       try {
@@ -73,7 +58,7 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async fetchUser(id: string): Promise<User | null> {
+    async fetchUser(id: string): Promise<DomainUser | null> {
       this.loading = true;
       this.error = null;
       try {
@@ -95,7 +80,7 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async fetchAllUsers(): Promise<User[] | null> {
+    async fetchAllUsers(): Promise<DomainUser[] | null> {
       this.loading = true;
       this.error = null;
       try {
@@ -113,7 +98,7 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async updateUser(payload: { id: string } & UserUpdateData): Promise<User | null> {
+    async updateUser(payload: UserUpdatePayload): Promise<DomainUser | null> {
       this.loading = true;
       this.error = null;
       const { id, ...updateData } = payload;
@@ -121,12 +106,20 @@ export const useUserStore = defineStore('user', {
       if (!id) {
         this.error = 'User ID is required for update.';
         console.error(this.error);
+        this.loading = false;
         return null;
+      }
+      if (Object.keys(updateData).length === 0) {
+        this.error = 'No update data provided.';
+        console.warn(this.error);
+        this.loading = false;
+        return null; // Or handle as a no-op successfully
       }
 
       try {
         const updatedUser = await userService.updateUser(id, updateData);
         if (this.currentUser && this.currentUser.id === id) {
+          // Ensure all fields are updated, spread new data over existing to keep any non-returned fields if necessary
           this.currentUser = { ...this.currentUser, ...updatedUser };
         }
         const index = this.users.findIndex(u => u.id === id);
@@ -139,6 +132,26 @@ export const useUserStore = defineStore('user', {
         this.error = errorMessage;
         console.error('Error en updateUser (store):', errorMessage, error.response?.data || error);
         return null;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async deleteUser(userId: string): Promise<boolean> {
+      this.loading = true;
+      this.error = null;
+      try {
+        await userService.deleteUser(userId);
+        this.users = this.users.filter(u => u.id !== userId);
+        if (this.currentUser && this.currentUser.id === userId) {
+          this.currentUser = null;
+        }
+        return true;
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.error || error.message || 'Error al eliminar el perfil.';
+        this.error = errorMessage;
+        console.error('Error en deleteUser (store):', errorMessage, error.response?.data || error);
+        return false;
       } finally {
         this.loading = false;
       }

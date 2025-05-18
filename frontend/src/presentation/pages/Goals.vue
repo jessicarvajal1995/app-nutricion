@@ -235,8 +235,13 @@
    
    
    const saveGoal = async () => {
-    if (!userStore.currentUser) return;
-     try {
+    if (!userStore.currentUser) {
+      alert('No hay un usuario activo seleccionado. No se puede guardar la meta.');
+      console.error('Error al guardar la meta: userStore.currentUser es null.');
+      // Podrías considerar aquí solicitar al usuario que seleccione/cargue un perfil.
+      return;
+    }
+    try {
       await goalStore.createGoal({
         userId: userStore.currentUser.id,
         ...goalForm.value

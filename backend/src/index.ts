@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 // import { PrismaClient } from '@prisma/client'; // No longer needed here, managed in userRoutes
 import userRoutes from './routes/userRoutes.js'; // Import user routes
+import dishRoutes from './routes/dishRoutes.js'; // Import dish routes
+import goalRoutes from './routes/goalRoutes.js'; // Import goal routes
 import cors from 'cors'; // Import cors
 // NutritionalGoal and IGoalRepository might be used for other routes later
 // import { NutritionalGoal } from './entities/NutritionalGoal.js';
@@ -28,6 +30,12 @@ app.get('/', (req: Request, res: Response) => {
 
 // Use user routes, prefixing them with /api/users
 app.use('/api/users', userRoutes);
+
+// Use dish routes, prefixing them with /api/dishes
+app.use('/api/dishes', dishRoutes);
+
+// Use goal routes, prefixing them with /api/goals
+app.use('/api/goals', goalRoutes);
 
 // TODO: Add routes for Goals and other entities here
 

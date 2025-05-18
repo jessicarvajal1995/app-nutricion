@@ -79,4 +79,23 @@ export class PrismaUserRepository implements IUserRepository {
      where: { id }
    });
  }
+
+ async deleteById(id: string): Promise<boolean> {
+   try {
+     await this.prisma.user.delete({
+       where: { id }
+     });
+     return true;
+   } catch (error) {
+     // Prisma throws an error if the record to delete is not found (P2025)
+     // You can check for specific Prisma error codes if needed
+     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+       return false; // Record to delete not found
+     }
+     // For other errors, rethrow or handle as appropriate
+     // console.error("Error deleting user:", error);
+     // throw error; 
+     return false; // Or rethrow, depending on desired error handling for other cases
+   }
+ }
 }
