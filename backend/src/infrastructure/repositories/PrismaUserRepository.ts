@@ -87,15 +87,16 @@ export class PrismaUserRepository implements IUserRepository {
      });
      return true;
    } catch (error) {
-     // Prisma throws an error if the record to delete is not found (P2025)
-     // You can check for specific Prisma error codes if needed
-     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-       return false; // Record to delete not found
+     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+       if (error.code === 'P2025') {
+         console.warn(`Attempted to delete non-existent user with ID ${id} (P2025).`);
+         return false;
+       }
+       console.error(`Prisma known request error during deletion of user ${id}: ${error.code}`, error);
+       throw error;
      }
-     // For other errors, rethrow or handle as appropriate
-     // console.error("Error deleting user:", error);
-     // throw error; 
-     return false; // Or rethrow, depending on desired error handling for other cases
+     console.error(`Unexpected error during deletion of user ${id}:`, error);
+     throw error;
    }
  }
 }

@@ -18,7 +18,7 @@
         </button>
       </div>
      
-      <div class="daily-summary card" v-if="!dailyRecordStore.loading">
+      <div class="daily-summary card">
         <h2>Resumen Nutricional</h2>
        
         <div class="nutrients-summary">
@@ -460,6 +460,394 @@
    
    
    <style scoped>
-   /* Los estilos se mantienen igual que en el componente original */
-   </style>
-   
+.daily-tracking {
+  padding: 20px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #564256;
+  text-align: center;
+}
+
+.date-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.current-date {
+  position: relative;
+}
+
+.date-input {
+  padding: 10px 15px;
+  border: 2px solid #f8a4c0;
+  border-radius: 30px;
+  background-color: white;
+  color: #564256;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  width: 200px;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8a4c0;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background-color: #f591b2;
+  transform: translateY(-2px);
+}
+
+.btn-icon:disabled {
+  background-color: #e1e1e1;
+  cursor: not-allowed;
+}
+
+.daily-summary {
+  margin-bottom: 30px;
+  padding: 20px;
+}
+
+.daily-summary h2 {
+  color: #564256;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.nutrients-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.nutrient-summary {
+  margin-bottom: 15px;
+}
+
+.nutrient-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.nutrient-name {
+  font-weight: 600;
+  color: #564256;
+}
+
+.nutrient-total {
+  font-weight: 600;
+  color: #f8a4c0;
+}
+
+.progress-bar-container {
+  height: 10px;
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #f8a4c0, #f591b2);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.nutrient-goal {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.total-calories {
+  grid-column: 1 / -1;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f1f1f1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calories-label {
+  font-weight: 500;
+  color: #564256;
+}
+
+.calories-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f8a4c0;
+}
+
+.add-meal-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.meal-form-container {
+  margin-bottom: 30px;
+  animation: slideDown 0.4s ease-in-out;
+}
+
+.meal-form-container h2 {
+  color: #564256;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #fde9f0;
+  text-align: center;
+}
+
+.meal-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-weight: 500;
+  color: #564256;
+}
+
+.dish-select {
+  padding: 12px;
+  border: 1px solid #e1e1e1;
+  border-radius: 8px;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.dish-select:focus {
+  border-color: #f8a4c0;
+  box-shadow: 0 0 0 3px rgba(248, 164, 192, 0.15);
+}
+
+input {
+  padding: 12px;
+  border: 1px solid #e1e1e1;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  border-color: #f8a4c0;
+  box-shadow: 0 0 0 3px rgba(248, 164, 192, 0.15);
+}
+
+.dish-link {
+  margin-top: 5px;
+  font-size: 0.85rem;
+}
+
+.dish-link a {
+  color: #f8a4c0;
+  text-decoration: none;
+}
+
+.dish-link a:hover {
+  text-decoration: underline;
+}
+
+.dish-nutrients {
+  grid-column: 1 / -1;
+  background-color: #fde9f0;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.dish-nutrients h3 {
+  color: #564256;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.nutrient-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+}
+
+.nutrient {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nutrient-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.nutrient-value {
+  font-weight: 600;
+  color: #564256;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.daily-meals {
+  margin-top: 30px;
+}
+
+.meals-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.meal-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.meal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.meal-header {
+  padding: 15px;
+  background-color: #fde9f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meal-header h3 {
+  margin: 0;
+  color: #564256;
+  font-size: 1.1rem;
+}
+
+.meal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon.edit, .btn-icon.delete {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.btn-icon.edit:hover {
+  background-color: #f8a4c0;
+  color: white;
+}
+
+.btn-icon.delete:hover {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.meal-amount {
+  padding: 10px 15px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f8a4c0;
+  background-color: #fafafa;
+  text-align: center;
+}
+
+.meal-nutrients {
+  padding: 15px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.meal-calories {
+  padding: 10px 15px;
+  background-color: #fde9f0;
+  color: #564256;
+  font-weight: 600;
+  text-align: center;
+}
+
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .nutrients-summary, .meal-nutrients {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
+</style>

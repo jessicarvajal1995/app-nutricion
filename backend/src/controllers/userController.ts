@@ -6,6 +6,7 @@ import { UpdateUserUseCase, UpdateUserDataDTO } from '../useCases/user/UpdateUse
 import { DeleteUserUseCase } from '../useCases/user/DeleteUserUseCase.js';
 import { IUserRepository } from '../repositories/IUserRepository.js';
 import { User } from '../entities/User.js';
+import { Prisma } from '@prisma/client';
 
 
 interface CreateGoalDTO {
@@ -75,13 +76,11 @@ export class UserController {
     try {
       const { name, age, height, currentWeight } = req.body as CreateUserRequestBody;
 
-      // Basic validation (can be extended with a library like Zod)
       if (!name || age === undefined || height === undefined || currentWeight === undefined) {
         res.status(400).json({ error: 'Missing required fields: name, age, height, currentWeight' });
         return;
       }
       
-      // Type check for numbers, Express.json() might parse numbers from strings
       if (typeof age !== 'number' || typeof height !== 'number' || typeof currentWeight !== 'number') {
         res.status(400).json({ error: 'Fields age, height, currentWeight must be numbers.' });
         return;
@@ -94,7 +93,6 @@ export class UserController {
     } catch (error) {
       console.error('Error creating user:', error);
       if (error instanceof Error) {
-        // Check for specific use case errors if needed
         if (error.message.includes('La edad debe ser mayor que cero') || 
             error.message.includes('La altura debe ser mayor que cero') ||
             error.message.includes('El peso debe ser mayor que cero')) {
@@ -151,20 +149,18 @@ export class UserController {
   async updateUser(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const updateData = req.body as UpdateUserDataDTO; // Cast to DTO
+      const updateData = req.body as UpdateUserDataDTO;
 
       if (!id) {
         res.status(400).json({ error: 'User ID is required for update' });
         return;
       }
 
-      // Basic validation for empty body
       if (Object.keys(updateData).length === 0) {
         res.status(400).json({ error: 'Request body cannot be empty for update' });
         return;
       }
       
-      // Type check for numbers if they exist in updateData
       if (updateData.age !== undefined && typeof updateData.age !== 'number') {
         res.status(400).json({ error: 'Field age must be a number.' });
         return;
@@ -213,17 +209,30 @@ export class UserController {
       const success = await this.deleteUserUseCase.execute(id);
 
       if (!success) {
-        res.status(404).json({ error: 'User not found or could not be deleted' });
+        // This case is now specifically for when the repository confirmed user was not found (P2025)
+        res.status(404).json({ error: 'User not found' });
         return;
       }
 
       res.status(204).send(); // 204 No Content for successful deletion
     } catch (error) {
-      console.error('Error deleting user:', error);
-      if (error instanceof Error) {
-        res.status(500).json({ error: 'Internal server error', details: error.message });
+      console.error('Error deleting user in UserController:', error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // Handle specific Prisma errors, e.g., foreign key constraint violation
+        if (error.code === 'P2003') { // Foreign key constraint failed
+            res.status(409).json({ 
+              error: 'Cannot delete user: it is referenced by other data (e.g., nutritional goals).',
+              details: 'Foreign key constraint failed.'
+            });
+            return;
+        }
+        // For other Prisma errors that were rethrown
+        res.status(500).json({ error: 'Database error during deletion.', details: error.message });
+      } else if (error instanceof Error) {
+        // For other generic errors rethrown by use case/repository
+        res.status(500).json({ error: 'Internal server error during deletion.', details: error.message });
       } else {
-        res.status(500).json({ error: 'An unknown error occurred' });
+        res.status(500).json({ error: 'An unknown error occurred during deletion.' });
       }
     }
   }
